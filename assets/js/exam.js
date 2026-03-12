@@ -60,7 +60,6 @@ function startExam(fromErrors) {
       + '<div class="p-context">' + item.context + '</div>'
       + '<div class="p-question">' + item.question + '</div>'
       + '<input class="p-input" id="einp-' + i + '" placeholder="Ta réponse…"'
-      + ' oninput="examAnswers2[' + i + ']=this.value"'
       + ' onkeydown="if(event.key===\'Enter\'&&' + i + '<' + (examItems2.length - 1) + ')document.getElementById(\'einp-' + (i + 1) + '\').focus()">'
       + '</div>';
   });

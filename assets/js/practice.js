@@ -3,6 +3,10 @@
 // ============================================================
 let practiceFilter = 'actpas';
 
+// Current set of rendered practice items — shared with error-study.js
+// so checkPractice() always has the item without reading back from DOM
+let practiceItems = [];
+
 function setPracticeFilter(f, btn) {
   practiceFilter = f;
   document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
@@ -51,20 +55,15 @@ function buildPracticeItems() {
 }
 
 function startPractice() {
-  const items = buildPracticeItems();
-  if (!items.length) { document.getElementById('practice-cards').innerHTML = '<p style="color:var(--muted)">Sin ítems.</p>'; return; }
-  const html = items.map((item, i) => {
+  practiceItems = buildPracticeItems();
+  if (!practiceItems.length) { document.getElementById('practice-cards').innerHTML = '<p style="color:var(--muted)">Sin ítems.</p>'; return; }
+  const html = practiceItems.map((item, i) => {
     const isAP = item.type === 'actpas';
     const label = isAP
       ? (item.direction === 'active→passive' ? '🔄 Transforma al pasivo' : '🔄 Transforma al activo')
       : '🇫🇷 Conjuga être';
     const hint = isAP ? `Tiempo: ${item.tense}` : item.tense;
-    return `<div class="practice-card" id="pcard-${i}"
-      data-answer="${item.answer.replace(/"/g,'&quot;')}"
-      data-type="${item.type}"
-      data-direction="${item.direction||''}"
-      data-tense="${item.tense||''}"
-      data-question="${(item.question||'').replace(/"/g,'&quot;')}">
+    return `<div class="practice-card" id="pcard-${i}">
       <div class="p-label">${label}</div>
       <div class="p-context">${hint}</div>
       <div class="p-question">${item.question}</div>
@@ -77,35 +76,28 @@ function startPractice() {
 }
 
 function checkPractice(i) {
+  const item = practiceItems[i];
   const card = document.getElementById(`pcard-${i}`);
   const input = document.getElementById(`pinp-${i}`);
   const fb = document.getElementById(`pfb-${i}`);
-  const answer = card.dataset.answer;
   const val = input.value.trim();
   if (!val) return;
-  const ok = normalize(val) === normalize(answer);
+  const ok = normalize(val) === normalize(item.answer);
   card.classList.toggle('correct', ok); card.classList.toggle('wrong', !ok);
   input.classList.toggle('correct', ok); input.classList.toggle('wrong', !ok);
   fb.className = 'p-feedback ' + (ok ? 'ok' : 'err');
-  fb.textContent = ok ? '✓ ¡Correcto!' : `✗ Correcto: ${answer}`;
+  fb.textContent = ok ? '✓ ¡Correcto!' : `✗ Correcto: ${item.answer}`;
   input.disabled = true;
   if (!ok) {
-    // Reconstruct item from card data for error logging
-    logError({
-      type: card.dataset.type || 'actpas',
-      direction: card.dataset.direction || '',
-      tense: card.dataset.tense || '',
-      question: card.dataset.question || card.querySelector('.p-question').textContent,
-      answer,
-    });
+    logError(item);
     updateErrorBadge();
   }
 }
 
 function checkAllPractice() {
-  document.querySelectorAll('[id^="pcard-"]').forEach((_, i) => checkPractice(i));
+  practiceItems.forEach((_, i) => checkPractice(i));
   // Show summary banner after correcting all
-  const total = document.querySelectorAll('[id^="pcard-"]').length;
+  const total = practiceItems.length;
   const wrong = document.querySelectorAll('.practice-card.wrong').length;
   if (wrong > 0) {
     const banner = document.getElementById('practice-summary');
