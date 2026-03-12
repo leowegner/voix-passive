@@ -12,9 +12,11 @@ function switchMode(mode) {
 }
 
 // ============================================================
-// INIT
+// INIT — called by data.js after data.json loads
 // ============================================================
-renderTables();
-renderActivoPasivo();
-initTenseSelector();
-updateErrorBadge();
+function initApp() {
+  renderTables();
+  renderActivoPasivo();
+  initTenseSelector();
+  updateErrorBadge();
+}

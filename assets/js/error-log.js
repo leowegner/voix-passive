@@ -1,16 +1,25 @@
 // ============================================================
-// GLOBAL ERROR TRACKER
+// GLOBAL ERROR TRACKER  (persisted in localStorage)
 // ============================================================
-let errorLog = [];
+const LS_KEY = 'voix-passive-errors';
+
+// Load any errors saved from a previous session
+let errorLog = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+
+function saveErrors() {
+  localStorage.setItem(LS_KEY, JSON.stringify(errorLog));
+}
 
 function logError(item) {
   if (!errorLog.find(e => e.question === item.question && e.answer === item.answer)) {
     errorLog.push({ ...item });
+    saveErrors();
   }
 }
 
 function clearErrors() {
   errorLog = [];
+  saveErrors();
   updateErrorBadge();
 }
 
