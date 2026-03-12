@@ -202,6 +202,18 @@
   .results-score.mid { color: var(--warn); }
   .results-score.bad { color: var(--error); }
 
+  /* ====== TENSE SELECTOR ====== */
+  .tense-toggle-btn {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    padding: 0.3rem 0.7rem; border-radius: 2rem; cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .tense-toggle-btn.active {
+    background: var(--ink); color: var(--bg); border-color: var(--ink);
+  }
+  .tense-toggle-btn:not(.active):hover { border-color: var(--muted); color: var(--ink); }
+
   /* ====== SCROLLBAR ====== */
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -230,9 +242,10 @@
     <div class="logo">Être — <em>conjugaison</em></div>
     <div class="header-sub">Tiempos verbales · Voz activa y pasiva</div>
   </div>
-  <div style="margin-left:auto;display:flex;align-items:center;gap:0.75rem">
-    <span id="error-badge" style="font-size:0.7rem;color:#e07;background:rgba(220,0,80,0.12);border:1px solid rgba(220,0,80,0.3);border-radius:2rem;padding:0.25rem 0.75rem;cursor:pointer;white-space:nowrap" onclick="studyErrors()"></span>
-    <button id="study-errors-btn" style="display:none;font-size:0.72rem;font-family:'DM Mono',monospace;background:rgba(220,0,80,0.15);color:#e07;border:1px solid rgba(220,0,80,0.4);border-radius:0.3rem;padding:0.35rem 0.8rem;cursor:pointer;white-space:nowrap" onclick="studyErrors()">📌 Estudiar fallos</button>
+  <div id="error-header" style="display:none;margin-left:auto">
+    <button onclick="studyErrors()" style="font-family:'DM Mono',monospace;font-size:0.72rem;background:none;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.75);border-radius:0.3rem;padding:0.35rem 0.85rem;cursor:pointer;letter-spacing:0.04em;transition:all 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">
+      ↩ Repasar fallos <span id="error-count" style="opacity:0.6"></span>
+    </button>
   </div>
 </header>
 
@@ -256,6 +269,17 @@
 
     <div class="section-label">Imperativo & Formas No Personales</div>
     <div class="tense-grid" id="other-grid"></div>
+
+    <div class="section-label" style="margin-top:2rem">Selección de tiempos para práctica</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:0.5rem;padding:1.25rem;margin-bottom:1.5rem">
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">Activa o desactiva tiempos. Los modos Práctica, Quiz y Examen solo usarán los tiempos marcados.</p>
+      <div id="tense-toggle-grid" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem"></div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        <button class="btn btn-ghost" style="font-size:0.7rem;padding:0.4rem 0.9rem" onclick="selectAllTenses()">Todos</button>
+        <button class="btn btn-ghost" style="font-size:0.7rem;padding:0.4rem 0.9rem" onclick="selectCommonTenses()">⭐ Solo comunes</button>
+        <span id="tense-active-count" style="font-size:0.7rem;color:var(--muted);align-self:center;margin-left:0.25rem"></span>
+      </div>
+    </div>
   </div>
 
   <!-- ACTIVO / PASIVO -->
@@ -537,6 +561,7 @@ function renderTables() {
   const groups = { indicatif: 'indicatif-grid', subj: 'subj-grid', other: 'other-grid' };
   Object.values(groups).forEach(id => document.getElementById(id).innerHTML = '');
   tenses.forEach(t => {
+    if (t.group !== 'other' && !isTenseActive(t.name)) return;
     const html = `<div class="tense-card">
       <div class="tense-card-header">
         <span class="tense-name">${t.name}</span>
@@ -718,6 +743,89 @@ const transformExercises = [
 ];
 
 // ============================================================
+// TENSE SELECTOR
+// ============================================================
+// Tenses that appear in conjugation table
+const CONJ_TENSES = [
+  'Présent','Imparfait','Passé composé','Passé simple',
+  'Futur simple','Futur antérieur','Plus-que-parfait',
+  'Conditionnel présent','Conditionnel passé',
+  'Subjonctif présent','Subjonctif passé'
+];
+// Tenses that appear in transformExercises
+const TRANS_TENSES = [
+  'Présent','Imparfait','Passé composé','Passé simple',
+  'Futur simple','Conditionnel','Plus-que-parfait'
+];
+// All unique tenses shown in selector
+const ALL_TENSES = [...new Set([...CONJ_TENSES, ...TRANS_TENSES])];
+// Common tenses (passé simple excluded by default)
+const COMMON_TENSES = [
+  'Présent','Imparfait','Passé composé','Futur simple',
+  'Conditionnel présent','Conditionnel','Plus-que-parfait',
+  'Subjonctif présent'
+];
+
+let activeTenses = new Set(COMMON_TENSES);
+
+function initTenseSelector() {
+  const grid = document.getElementById('tense-toggle-grid');
+  if (!grid || grid.children.length) return;
+  ALL_TENSES.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'tense-toggle-btn' + (activeTenses.has(t) ? ' active' : '');
+    btn.textContent = t;
+    btn.dataset.tense = t;
+    btn.onclick = () => toggleTense(t, btn);
+    grid.appendChild(btn);
+  });
+  updateTenseCount();
+}
+
+function toggleTense(t, btn) {
+  if (activeTenses.has(t)) {
+    if (activeTenses.size <= 1) return; // keep at least one
+    activeTenses.delete(t);
+    btn.classList.remove('active');
+  } else {
+    activeTenses.add(t);
+    btn.classList.add('active');
+  }
+  updateTenseCount();
+  renderTables();
+}
+
+function selectAllTenses() {
+  ALL_TENSES.forEach(t => activeTenses.add(t));
+  document.querySelectorAll('.tense-toggle-btn').forEach(b => b.classList.add('active'));
+  updateTenseCount();
+  renderTables();
+}
+
+function selectCommonTenses() {
+  activeTenses = new Set(COMMON_TENSES);
+  document.querySelectorAll('.tense-toggle-btn').forEach(b => {
+    b.classList.toggle('active', activeTenses.has(b.dataset.tense));
+  });
+  updateTenseCount();
+  renderTables();
+}
+
+function updateTenseCount() {
+  const el = document.getElementById('tense-active-count');
+  if (el) el.textContent = activeTenses.size + ' / ' + ALL_TENSES.length + ' seleccionados';
+}
+
+function isTenseActive(tenseName) {
+  // Match against both exact and partial (e.g. 'Conditionnel' matches 'Conditionnel présent')
+  if (activeTenses.has(tenseName)) return true;
+  for (const t of activeTenses) {
+    if (tenseName.startsWith(t) || t.startsWith(tenseName)) return true;
+  }
+  return false;
+}
+
+// ============================================================
 // PRACTICE
 // ============================================================
 let practiceFilter = 'actpas';
@@ -733,7 +841,7 @@ function buildPracticeItems() {
   const items = [];
 
   if (practiceFilter === 'actpas' || practiceFilter === 'all') {
-    transformExercises.forEach(ex => {
+    transformExercises.filter(ex => isTenseActive(ex.tense)).forEach(ex => {
       // Give active → write passive
       items.push({
         type: 'actpas',
@@ -754,7 +862,7 @@ function buildPracticeItems() {
   }
 
   if (practiceFilter === 'conjugacion' || practiceFilter === 'all') {
-    tenses.filter(t => t.group === 'indicatif' || t.group === 'subj').forEach(t => {
+    tenses.filter(t => (t.group === 'indicatif' || t.group === 'subj') && isTenseActive(t.name)).forEach(t => {
       t.rows.forEach(r => {
         items.push({
           type: 'conj',
@@ -871,10 +979,10 @@ function clearErrors() {
 }
 
 function updateErrorBadge() {
-  const badge = document.getElementById('error-badge');
-  const btn = document.getElementById('study-errors-btn');
-  if (badge) badge.textContent = errorLog.length > 0 ? '⚠️ ' + errorLog.length + ' fallos' : '';
-  if (btn) btn.style.display = errorLog.length > 0 ? 'inline-block' : 'none';
+  const hdr = document.getElementById('error-header');
+  const cnt = document.getElementById('error-count');
+  if (hdr) hdr.style.display = errorLog.length > 0 ? 'block' : 'none';
+  if (cnt) cnt.textContent = '(' + errorLog.length + ')';
 }
 
 function analyzeErrors() {
@@ -944,7 +1052,7 @@ let quizItems = [], quizIndex = 0, quizScore = 0, quizWrong = [];
 
 function startQuiz() {
   const conj = [];
-  tenses.forEach(t => t.rows.forEach(r => conj.push({
+  tenses.filter(t => isTenseActive(t.name)).forEach(t => t.rows.forEach(r => conj.push({
     q: r.pro + ' ___ (\u00eatre) \u2014 ' + t.name,
     hint: t.es,
     correct: r.fr,
@@ -952,7 +1060,7 @@ function startQuiz() {
     type: 'conj', tense: t.name, context: t.name + ' \u2014 ' + t.es,
     question: r.pro + ' ___ (\u00eatre)', answer: r.fr,
   })));
-  const pasv = passiveTenses.map(p => ({
+  const pasv = passiveTenses.filter(p => isTenseActive(p.tense)).map(p => ({
     q: '\u00catre en ' + p.tense + ' \u2014 \u00bfcu\u00e1l es la f\u00f3rmula pasiva?',
     hint: p.es,
     correct: p.formula,
@@ -1026,7 +1134,7 @@ function renderExamStart() {
 
 function startExam(fromErrors) {
   const conjItems = [];
-  tenses.filter(t => t.group === 'indicatif').forEach(t => {
+  tenses.filter(t => t.group === 'indicatif' && isTenseActive(t.name)).forEach(t => {
     t.rows.forEach(r => conjItems.push({
       label: '\ud83c\uddeb\ud83c\uddf7 Conjuga \u00eatre', type: 'conj',
       context: t.name + ' \u2014 ' + t.es, tense: t.name,
@@ -1034,7 +1142,7 @@ function startExam(fromErrors) {
     }));
   });
   const transItems = [];
-  transformExercises.forEach(ex => {
+  transformExercises.filter(ex => isTenseActive(ex.tense)).forEach(ex => {
     transItems.push({ label: '\ud83d\udd04 Transforma al pasivo', type: 'actpas', direction: 'active\u2192passive', context: 'Tiempo: ' + ex.tense, tense: ex.tense, question: ex.active, answer: ex.passive });
     transItems.push({ label: '\ud83d\udd04 Transforma al activo', type: 'actpas', direction: 'passive\u2192active', context: 'Tiempo: ' + ex.tense, tense: ex.tense, question: ex.passive, answer: ex.active });
   });
@@ -1160,6 +1268,7 @@ function switchMode(mode) {
 // ============================================================
 renderTables();
 renderActivoPasivo();
+initTenseSelector();
 </script>
 </body>
 </html>
