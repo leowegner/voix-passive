@@ -1,0 +1,308 @@
+// ============================================================
+// DATA
+// ============================================================
+const tenses = [
+  {
+    id: 'present', name: 'Présent', es: 'Presente', group: 'indicatif',
+    usage: 'Acción actual o habitual. "Soy / Estoy"',
+    rows: [
+      { pro: 'je', fr: 'suis', esp: 'soy / estoy' },
+      { pro: 'tu', fr: 'es', esp: 'eres / estás' },
+      { pro: 'il/elle', fr: 'est', esp: 'es / está' },
+      { pro: 'nous', fr: 'sommes', esp: 'somos / estamos' },
+      { pro: 'vous', fr: 'êtes', esp: 'sois / estáis' },
+      { pro: 'ils/elles', fr: 'sont', esp: 'son / están' },
+    ]
+  },
+  {
+    id: 'imparfait', name: 'Imparfait', es: 'Imperfecto', group: 'indicatif',
+    usage: 'Descripción o acción habitual en el pasado. "Era / Estaba"',
+    rows: [
+      { pro: 'je', fr: 'étais', esp: 'era / estaba' },
+      { pro: 'tu', fr: 'étais', esp: 'eras / estabas' },
+      { pro: 'il/elle', fr: 'était', esp: 'era / estaba' },
+      { pro: 'nous', fr: 'étions', esp: 'éramos / estábamos' },
+      { pro: 'vous', fr: 'étiez', esp: 'erais / estabais' },
+      { pro: 'ils/elles', fr: 'étaient', esp: 'eran / estaban' },
+    ]
+  },
+  {
+    id: 'passe_compose', name: 'Passé composé', es: 'Pretérito perfecto', group: 'indicatif',
+    usage: 'Acción acabada en el pasado. "He sido / fui"',
+    rows: [
+      { pro: 'j\'', fr: 'ai été', esp: 'he sido / fui' },
+      { pro: 'tu', fr: 'as été', esp: 'has sido / fuiste' },
+      { pro: 'il/elle', fr: 'a été', esp: 'ha sido / fue' },
+      { pro: 'nous', fr: 'avons été', esp: 'hemos sido / fuimos' },
+      { pro: 'vous', fr: 'avez été', esp: 'habéis sido / fuisteis' },
+      { pro: 'ils/elles', fr: 'ont été', esp: 'han sido / fueron' },
+    ]
+  },
+  {
+    id: 'passe_simple', name: 'Passé simple', es: 'Pretérito indefinido', group: 'indicatif',
+    usage: 'Pasado literario/formal. "Fui / Fue" (escrito)',
+    rows: [
+      { pro: 'je', fr: 'fus', esp: 'fui' },
+      { pro: 'tu', fr: 'fus', esp: 'fuiste' },
+      { pro: 'il/elle', fr: 'fut', esp: 'fue' },
+      { pro: 'nous', fr: 'fûmes', esp: 'fuimos' },
+      { pro: 'vous', fr: 'fûtes', esp: 'fuisteis' },
+      { pro: 'ils/elles', fr: 'furent', esp: 'fueron' },
+    ]
+  },
+  {
+    id: 'futur', name: 'Futur simple', es: 'Futuro simple', group: 'indicatif',
+    usage: 'Acción futura. "Seré / Estaré"',
+    rows: [
+      { pro: 'je', fr: 'serai', esp: 'seré / estaré' },
+      { pro: 'tu', fr: 'seras', esp: 'serás / estarás' },
+      { pro: 'il/elle', fr: 'sera', esp: 'será / estará' },
+      { pro: 'nous', fr: 'serons', esp: 'seremos / estaremos' },
+      { pro: 'vous', fr: 'serez', esp: 'seréis / estaréis' },
+      { pro: 'ils/elles', fr: 'seront', esp: 'serán / estarán' },
+    ]
+  },
+  {
+    id: 'futur_anterieur', name: 'Futur antérieur', es: 'Futuro anterior', group: 'indicatif',
+    usage: 'Acción futura acabada antes que otra. "Habré sido"',
+    rows: [
+      { pro: 'j\'', fr: 'aurai été', esp: 'habré sido' },
+      { pro: 'tu', fr: 'auras été', esp: 'habrás sido' },
+      { pro: 'il/elle', fr: 'aura été', esp: 'habrá sido' },
+      { pro: 'nous', fr: 'aurons été', esp: 'habremos sido' },
+      { pro: 'vous', fr: 'aurez été', esp: 'habréis sido' },
+      { pro: 'ils/elles', fr: 'auront été', esp: 'habrán sido' },
+    ]
+  },
+  {
+    id: 'plus_que_parfait', name: 'Plus-que-parfait', es: 'Pluscuamperfecto', group: 'indicatif',
+    usage: 'Acción anterior a otra en el pasado. "Había sido"',
+    rows: [
+      { pro: 'j\'', fr: 'avais été', esp: 'había sido' },
+      { pro: 'tu', fr: 'avais été', esp: 'habías sido' },
+      { pro: 'il/elle', fr: 'avait été', esp: 'había sido' },
+      { pro: 'nous', fr: 'avions été', esp: 'habíamos sido' },
+      { pro: 'vous', fr: 'aviez été', esp: 'habíais sido' },
+      { pro: 'ils/elles', fr: 'avaient été', esp: 'habían sido' },
+    ]
+  },
+  {
+    id: 'cond_present', name: 'Conditionnel présent', es: 'Condicional presente', group: 'subj',
+    usage: 'Hipótesis o cortesía. "Sería / Estaría"',
+    rows: [
+      { pro: 'je', fr: 'serais', esp: 'sería / estaría' },
+      { pro: 'tu', fr: 'serais', esp: 'serías / estarías' },
+      { pro: 'il/elle', fr: 'serait', esp: 'sería / estaría' },
+      { pro: 'nous', fr: 'serions', esp: 'seríamos / estaríamos' },
+      { pro: 'vous', fr: 'seriez', esp: 'seríais / estaríais' },
+      { pro: 'ils/elles', fr: 'seraient', esp: 'serían / estarían' },
+    ]
+  },
+  {
+    id: 'cond_passe', name: 'Conditionnel passé', es: 'Condicional pasado', group: 'subj',
+    usage: 'Hipótesis sobre el pasado. "Habría sido"',
+    rows: [
+      { pro: 'j\'', fr: 'aurais été', esp: 'habría sido' },
+      { pro: 'tu', fr: 'aurais été', esp: 'habrías sido' },
+      { pro: 'il/elle', fr: 'aurait été', esp: 'habría sido' },
+      { pro: 'nous', fr: 'aurions été', esp: 'habríamos sido' },
+      { pro: 'vous', fr: 'auriez été', esp: 'habríais sido' },
+      { pro: 'ils/elles', fr: 'auraient été', esp: 'habrían sido' },
+    ]
+  },
+  {
+    id: 'subj_present', name: 'Subjonctif présent', es: 'Subjuntivo presente', group: 'subj',
+    usage: 'Tras "que" con duda, emoción, deseo. "que sea"',
+    rows: [
+      { pro: 'que je', fr: 'sois', esp: 'que sea / esté' },
+      { pro: 'que tu', fr: 'sois', esp: 'que seas / estés' },
+      { pro: 'qu\'il/elle', fr: 'soit', esp: 'que sea / esté' },
+      { pro: 'que nous', fr: 'soyons', esp: 'que seamos' },
+      { pro: 'que vous', fr: 'soyez', esp: 'que seáis' },
+      { pro: 'qu\'ils/elles', fr: 'soient', esp: 'que sean / estén' },
+    ]
+  },
+  {
+    id: 'subj_passe', name: 'Subjonctif passé', es: 'Subjuntivo pasado', group: 'subj',
+    usage: 'Acción pasada en subjuntivo. "que haya sido"',
+    rows: [
+      { pro: 'que j\'', fr: 'aie été', esp: 'que haya sido' },
+      { pro: 'que tu', fr: 'aies été', esp: 'que hayas sido' },
+      { pro: 'qu\'il/elle', fr: 'ait été', esp: 'que haya sido' },
+      { pro: 'que nous', fr: 'ayons été', esp: 'que hayamos sido' },
+      { pro: 'que vous', fr: 'ayez été', esp: 'que hayáis sido' },
+      { pro: 'qu\'ils/elles', fr: 'aient été', esp: 'que hayan sido' },
+    ]
+  },
+  {
+    id: 'imperatif', name: 'Impératif', es: 'Imperativo', group: 'other',
+    usage: 'Órdenes o consejos directos.',
+    rows: [
+      { pro: 'tu', fr: 'sois', esp: 'sé / sé (tú)' },
+      { pro: 'nous', fr: 'soyons', esp: 'seamos' },
+      { pro: 'vous', fr: 'soyez', esp: 'sed / sean' },
+    ]
+  },
+  {
+    id: 'infinitif', name: 'Infinitif & Participes', es: 'Infinitivo & Participios', group: 'other',
+    usage: 'Formas no personales del verbo.',
+    rows: [
+      { pro: 'Infinitif', fr: 'être', esp: 'ser / estar' },
+      { pro: 'Inf. passé', fr: 'avoir été', esp: 'haber sido' },
+      { pro: 'Part. présent', fr: 'étant', esp: 'siendo / estando' },
+      { pro: 'Part. passé', fr: 'été', esp: 'sido / estado' },
+    ]
+  },
+];
+
+const transforms = [
+  {
+    title: 'Présent → Passif présent',
+    active: { fr: 'Le professeur <span class="highlight">corrige</span> les exercices.', es: 'El profesor corrige los ejercicios.' },
+    passive: { fr: 'Les exercices sont <span class="highlight2">corrigés</span> <span style="color:var(--muted)">par le professeur</span>.', es: 'Los ejercicios son corregidos por el profesor.' },
+  },
+  {
+    title: 'Imparfait → Passif imparfait',
+    active: { fr: 'La directrice <span class="highlight">organisait</span> la réunion.', es: 'La directora organizaba la reunión.' },
+    passive: { fr: 'La réunion <span class="highlight2">était organisée</span> <span style="color:var(--muted)">par la directrice</span>.', es: 'La reunión era organizada por la directora.' },
+  },
+  {
+    title: 'Passé composé → Passif passé composé',
+    active: { fr: 'Les élèves ont <span class="highlight">écrit</span> la lettre.', es: 'Los alumnos han escrito la carta.' },
+    passive: { fr: 'La lettre <span class="highlight2">a été écrite</span> <span style="color:var(--muted)">par les élèves</span>.', es: 'La carta ha sido escrita por los alumnos.' },
+  },
+  {
+    title: 'Futur → Passif futur',
+    active: { fr: 'Le jury <span class="highlight">annoncera</span> les résultats.', es: 'El jurado anunciará los resultados.' },
+    passive: { fr: 'Les résultats <span class="highlight2">seront annoncés</span> <span style="color:var(--muted)">par le jury</span>.', es: 'Los resultados serán anunciados por el jurado.' },
+  },
+];
+
+const passiveTenses = [
+  { tense: 'Présent', formula: 'est / sont + participe', example: 'La lettre est lue.', es: 'La carta es leída.' },
+  { tense: 'Imparfait', formula: 'était / étaient + participe', example: 'La lettre était lue.', es: 'La carta era leída.' },
+  { tense: 'Passé composé', formula: 'a été / ont été + participe', example: 'La lettre a été lue.', es: 'La carta ha sido leída.' },
+  { tense: 'Futur simple', formula: 'sera / seront + participe', example: 'La lettre sera lue.', es: 'La carta será leída.' },
+  { tense: 'Conditionnel', formula: 'serait / seraient + participe', example: 'La lettre serait lue.', es: 'La carta sería leída.' },
+  { tense: 'Subjonctif', formula: 'soit / soient + participe', example: 'Il faut que la lettre soit lue.', es: 'Es necesario que la carta sea leída.' },
+  { tense: 'Plus-que-parfait', formula: 'avait été / avaient été + participe', example: 'La lettre avait été lue.', es: 'La carta había sido leída.' },
+];
+
+// ============================================================
+// SENTENCE TRANSFORMATION DATA — 100 pairs (active ↔ passive)
+// ============================================================
+const transformExercises = [
+  // PRÉSENT (20)
+  { active: 'Le professeur corrige les exercices.', passive: 'Les exercices sont corrigés par le professeur.', tense: 'Présent' },
+  { active: 'La directrice organise la réunion.', passive: 'La réunion est organisée par la directrice.', tense: 'Présent' },
+  { active: 'Les élèves lisent le livre.', passive: 'Le livre est lu par les élèves.', tense: 'Présent' },
+  { active: 'Le chef prépare le repas.', passive: 'Le repas est préparé par le chef.', tense: 'Présent' },
+  { active: "L'architecte dessine les plans.", passive: "Les plans sont dessinés par l'architecte.", tense: 'Présent' },
+  { active: 'Le médecin examine le patient.', passive: 'Le patient est examiné par le médecin.', tense: 'Présent' },
+  { active: 'Le jardinier arrose les plantes.', passive: 'Les plantes sont arrosées par le jardinier.', tense: 'Présent' },
+  { active: 'La secrétaire rédige le rapport.', passive: 'Le rapport est rédigé par la secrétaire.', tense: 'Présent' },
+  { active: 'Le technicien répare la machine.', passive: 'La machine est réparée par le technicien.', tense: 'Présent' },
+  { active: 'Les pompiers éteignent le feu.', passive: 'Le feu est éteint par les pompiers.', tense: 'Présent' },
+  { active: 'Le cuisinier prépare la sauce.', passive: 'La sauce est préparée par le cuisinier.', tense: 'Présent' },
+  { active: 'Le juge prononce la sentence.', passive: 'La sentence est prononcée par le juge.', tense: 'Présent' },
+  { active: "L'étudiant prépare l'examen.", passive: "L'examen est préparé par l'étudiant.", tense: 'Présent' },
+  { active: 'Les enfants regardent le film.', passive: 'Le film est regardé par les enfants.', tense: 'Présent' },
+  { active: 'Le directeur signe le contrat.', passive: 'Le contrat est signé par le directeur.', tense: 'Présent' },
+  { active: "L'ingénieur construit le pont.", passive: "Le pont est construit par l'ingénieur.", tense: 'Présent' },
+  { active: 'Le photographe prend les photos.', passive: 'Les photos sont prises par le photographe.', tense: 'Présent' },
+  { active: 'La boulangère vend le pain.', passive: 'Le pain est vendu par la boulangère.', tense: 'Présent' },
+  { active: 'Le pilote conduit le avion.', passive: "L'avion est conduit par le pilote.", tense: 'Présent' },
+  { active: 'La mère lit une histoire.', passive: 'Une histoire est lue par la mère.', tense: 'Présent' },
+
+  // IMPARFAIT (15)
+  { active: 'La directrice organisait la réunion.', passive: 'La réunion était organisée par la directrice.', tense: 'Imparfait' },
+  { active: 'Les enfants regardaient le film.', passive: 'Le film était regardé par les enfants.', tense: 'Imparfait' },
+  { active: 'Le médecin examinait le patient.', passive: 'Le patient était examiné par le médecin.', tense: 'Imparfait' },
+  { active: 'Le professeur expliquait la leçon.', passive: 'La leçon était expliquée par le professeur.', tense: 'Imparfait' },
+  { active: 'Les ouvriers construisaient le mur.', passive: 'Le mur était construit par les ouvriers.', tense: 'Imparfait' },
+  { active: 'La cuisinière préparait le dîner.', passive: 'Le dîner était préparé par la cuisinière.', tense: 'Imparfait' },
+  { active: 'Le peintre décorait la salle.', passive: 'La salle était décorée par le peintre.', tense: 'Imparfait' },
+  { active: 'Les policiers surveillaient le quartier.', passive: 'Le quartier était surveillé par les policiers.', tense: 'Imparfait' },
+  { active: 'Le mécanicien réparait la voiture.', passive: 'La voiture était réparée par le mécanicien.', tense: 'Imparfait' },
+  { active: 'La journaliste rédigeait le article.', passive: 'Le article était rédigé par la journaliste.', tense: 'Imparfait' },
+  { active: 'Les élèves copiaient le texte.', passive: 'Le texte était copié par les élèves.', tense: 'Imparfait' },
+  { active: 'Le boucher découpait la viande.', passive: 'La viande était découpée par le boucher.', tense: 'Imparfait' },
+  { active: "L'arbitre sifflait les fautes.", passive: "Les fautes étaient sifflées par l'arbitre.", tense: 'Imparfait' },
+  { active: 'Le secrétaire tapait le courrier.', passive: 'Le courrier était tapé par le secrétaire.', tense: 'Imparfait' },
+  { active: 'La professeure notait les devoirs.', passive: 'Les devoirs étaient notés par la professeure.', tense: 'Imparfait' },
+
+  // PASSÉ COMPOSÉ (20)
+  { active: 'Les élèves ont écrit la lettre.', passive: 'La lettre a été écrite par les élèves.', tense: 'Passé composé' },
+  { active: "L'ingénieur a construit le pont.", passive: "Le pont a été construit par l'ingénieur.", tense: 'Passé composé' },
+  { active: 'Les juges ont rendu le verdict.', passive: 'Le verdict a été rendu par les juges.', tense: 'Passé composé' },
+  { active: 'Le journaliste a publié le article.', passive: 'Le article a été publié par le journaliste.', tense: 'Passé composé' },
+  { active: 'Le maire a inauguré le musée.', passive: 'Le musée a été inauguré par le maire.', tense: 'Passé composé' },
+  { active: 'La police a arrêté le suspect.', passive: 'Le suspect a été arrêté par la police.', tense: 'Passé composé' },
+  { active: "L'auteur a écrit le roman.", passive: "Le roman a été écrit par l'auteur.", tense: 'Passé composé' },
+  { active: 'Les pompiers ont éteint le feu.', passive: 'Le feu a été éteint par les pompiers.', tense: 'Passé composé' },
+  { active: 'Le président a signé la loi.', passive: 'La loi a été signée par le président.', tense: 'Passé composé' },
+  { active: 'Le chef a préparé le repas.', passive: 'Le repas a été préparé par le chef.', tense: 'Passé composé' },
+  { active: 'Les ouvriers ont peint le mur.', passive: 'Le mur a été peint par les ouvriers.', tense: 'Passé composé' },
+  { active: 'Le médecin a opéré le patient.', passive: 'Le patient a été opéré par le médecin.', tense: 'Passé composé' },
+  { active: "L'étudiant a réussi l'examen.", passive: "L'examen a été réussi par l'étudiant.", tense: 'Passé composé' },
+  { active: 'La directrice a convoqué les parents.', passive: 'Les parents ont été convoqués par la directrice.', tense: 'Passé composé' },
+  { active: "L'architecte a dessiné les plans.", passive: "Les plans ont été dessinés par l'architecte.", tense: 'Passé composé' },
+  { active: 'Le technicien a réparé la machine.', passive: 'La machine a été réparée par le technicien.', tense: 'Passé composé' },
+  { active: 'Le jury a sélectionné les candidats.', passive: 'Les candidats ont été sélectionnés par le jury.', tense: 'Passé composé' },
+  { active: 'La secrétaire a envoyé les lettres.', passive: 'Les lettres ont été envoyées par la secrétaire.', tense: 'Passé composé' },
+  { active: 'Le gouvernement a adopté la mesure.', passive: 'La mesure a été adoptée par le gouvernement.', tense: 'Passé composé' },
+  { active: "L'équipe a gagné le match.", passive: "Le match a été gagné par l'équipe.", tense: 'Passé composé' },
+
+  // PASSÉ SIMPLE (10)
+  { active: 'Napoléon signa le traité.', passive: 'Le traité fut signé par Napoléon.', tense: 'Passé simple' },
+  { active: 'Le roi décréta la loi.', passive: 'La loi fut décrétée par le roi.', tense: 'Passé simple' },
+  { active: "L'explorateur découvrit le continent.", passive: "Le continent fut découvert par l'explorateur.", tense: 'Passé simple' },
+  { active: "L'architecte construisit le palais.", passive: "Le palais fut construit par l'architecte.", tense: 'Passé simple' },
+  { active: 'Les soldats défendirent la ville.', passive: 'La ville fut défendue par les soldats.', tense: 'Passé simple' },
+  { active: 'Le savant publia ses résultats.', passive: 'Ses résultats furent publiés par le savant.', tense: 'Passé simple' },
+  { active: "L'auteur rédigea le manifeste.", passive: "Le manifeste fut rédigé par l'auteur.", tense: 'Passé simple' },
+  { active: 'Le général ordonna la retraite.', passive: 'La retraite fut ordonnée par le général.', tense: 'Passé simple' },
+  { active: 'Les artisans fabriquèrent le meuble.', passive: 'Le meuble fut fabriqué par les artisans.', tense: 'Passé simple' },
+  { active: 'Le sculpteur créa la statue.', passive: 'La statue fut créée par le sculpteur.', tense: 'Passé simple' },
+
+  // FUTUR SIMPLE (15)
+  { active: 'Le jury annoncera les résultats.', passive: 'Les résultats seront annoncés par le jury.', tense: 'Futur simple' },
+  { active: 'Le gouvernement signera le traité.', passive: 'Le traité sera signé par le gouvernement.', tense: 'Futur simple' },
+  { active: 'Les ouvriers termineront les travaux.', passive: 'Les travaux seront terminés par les ouvriers.', tense: 'Futur simple' },
+  { active: 'Le médecin opérera le patient.', passive: 'Le patient sera opéré par le médecin.', tense: 'Futur simple' },
+  { active: 'La commission examinera les dossiers.', passive: 'Les dossiers seront examinés par la commission.', tense: 'Futur simple' },
+  { active: 'Le professeur corrigera les copies.', passive: 'Les copies seront corrigées par le professeur.', tense: 'Futur simple' },
+  { active: "L'entreprise lancera le produit.", passive: "Le produit sera lancé par l'entreprise.", tense: 'Futur simple' },
+  { active: 'La mairie organisera la fête.', passive: 'La fête sera organisée par la mairie.', tense: 'Futur simple' },
+  { active: "L'éditeur publiera le roman.", passive: "Le roman sera publié par l'éditeur.", tense: 'Futur simple' },
+  { active: 'Les juges rendront le verdict.', passive: 'Le verdict sera rendu par les juges.', tense: 'Futur simple' },
+  { active: 'La police arrêtera le suspect.', passive: 'Le suspect sera arrêté par la police.', tense: 'Futur simple' },
+  { active: 'Le technicien installera le logiciel.', passive: 'Le logiciel sera installé par le technicien.', tense: 'Futur simple' },
+  { active: "L'ingénieur réparera le système.", passive: "Le système sera réparé par l'ingénieur.", tense: 'Futur simple' },
+  { active: 'Les architectes dessineront les plans.', passive: 'Les plans seront dessinés par les architectes.', tense: 'Futur simple' },
+  { active: 'Le conseil approuvera le budget.', passive: 'Le budget sera approuvé par le conseil.', tense: 'Futur simple' },
+
+  // CONDITIONNEL PRÉSENT (10)
+  { active: 'Le comité approuverait la décision.', passive: 'La décision serait approuvée par le comité.', tense: 'Conditionnel' },
+  { active: 'Les chercheurs publieraient les résultats.', passive: 'Les résultats seraient publiés par les chercheurs.', tense: 'Conditionnel' },
+  { active: 'Le directeur signerait le contrat.', passive: 'Le contrat serait signé par le directeur.', tense: 'Conditionnel' },
+  { active: 'Le médecin prescrirait le traitement.', passive: 'Le traitement serait prescrit par le médecin.', tense: 'Conditionnel' },
+  { active: "L'avocat défendrait son client.", passive: "Son client serait défendu par l'avocat.", tense: 'Conditionnel' },
+  { active: 'Le gouvernement financerait le projet.', passive: 'Le projet serait financé par le gouvernement.', tense: 'Conditionnel' },
+  { active: "L'équipe réaliserait l'étude.", passive: "L'étude serait réalisée par l'équipe.", tense: 'Conditionnel' },
+  { active: 'Les juges examineraient les preuves.', passive: 'Les preuves seraient examinées par les juges.', tense: 'Conditionnel' },
+  { active: 'La commission évaluerait le dossier.', passive: 'Le dossier serait évalué par la commission.', tense: 'Conditionnel' },
+  { active: 'Le jury sélectionnerait les œuvres.', passive: 'Les œuvres seraient sélectionnées par le jury.', tense: 'Conditionnel' },
+
+  // PLUS-QUE-PARFAIT (10)
+  { active: "L'ingénieur avait conçu le plan.", passive: "Le plan avait été conçu par l'ingénieur.", tense: 'Plus-que-parfait' },
+  { active: 'Le maire avait inauguré la place.', passive: 'La place avait été inaugurée par le maire.', tense: 'Plus-que-parfait' },
+  { active: 'La police avait arrêté le coupable.', passive: 'Le coupable avait été arrêté par la police.', tense: 'Plus-que-parfait' },
+  { active: "L'auteur avait écrit le discours.", passive: "Le discours avait été écrit par l'auteur.", tense: 'Plus-que-parfait' },
+  { active: 'Les ouvriers avaient terminé les travaux.', passive: 'Les travaux avaient été terminés par les ouvriers.', tense: 'Plus-que-parfait' },
+  { active: 'Le médecin avait diagnostiqué la maladie.', passive: 'La maladie avait été diagnostiquée par le médecin.', tense: 'Plus-que-parfait' },
+  { active: 'Le professeur avait préparé le cours.', passive: 'Le cours avait été préparé par le professeur.', tense: 'Plus-que-parfait' },
+  { active: 'Le tribunal avait prononcé la sentence.', passive: 'La sentence avait été prononcée par le tribunal.', tense: 'Plus-que-parfait' },
+  { active: "L'équipe avait gagné le tournoi.", passive: "Le tournoi avait été gagné par l'équipe.", tense: 'Plus-que-parfait' },
+  { active: 'La secrétaire avait classé les documents.', passive: 'Les documents avaient été classés par la secrétaire.', tense: 'Plus-que-parfait' },
+];
